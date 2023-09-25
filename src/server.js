@@ -5,6 +5,7 @@ const Book = require("./books/model");
 const Author = require("./authors/model");
 
 const bookRouter = require("./books/routes");
+const authorRouter = require("./authors/routes");
 
 const port = process.env.PORT || 5001;
 
@@ -18,6 +19,7 @@ const syncTables = () => {
 app.use(express.json());
 
 app.use("/books", bookRouter);
+app.use("/authors", authorRouter);
 
 app.use("/health", (req, res) => {
   res.status(200).json({ message: "API is healthy" });
