@@ -4,58 +4,32 @@ const Author = require("../authors/model");
 // add single book to db on /books/addsinglebook
 const addSingleBook = async (req, res) => {
   try {
-    // checks to see if title is present - if not, send 422 status in res
-    if (req.body.title) {
-      //checks to see if author already exists
-      // return an array with 2 elements
-      // 1. new entry (obj)
-      // 2. boolean (has been created = true, found = false)
-      // uses array destructuring
-      const [author, authorCreated] = await Author.findOrCreate({
-        where: { author: req.body.author },
-      });
+    //checks to see if author already exists
+    // return an array with 2 elements
+    // 1. new entry (obj)
+    // 2. boolean (has been created = true, found = false)
+    // uses array destructuring
+    const [author, authorCreated] = await Author.findOrCreate({
+      where: { author: req.body.author },
+    });
 
-      //creates book - will return an object
-      const result = await Book.create({
-        title: req.body.title,
-        // adding the id from the found/created author
-        AuthorId: author.dataValues.id,
-        //if genre missing and is empty string, send undefined so model default genre is put in
-        // if req.body.genre is missing entirely, model default will occur
-        genre: req.body.genre === "" ? undefined : req.body.genre,
-      });
-      //checks if result (return from Book.create()) has a title
-      // if so, will send back res with 201 - book created
-      if (result.title) {
-        res.status(201).json({
-          result: result,
-          message: `${result.title} has been added to the db`,
-        });
-        return;
-      }
-    } else {
-      // if title is missing, send back response 422 (unprocessable entry) unable to
-      // create book title is missing
-      res.status(422).json({
-        message: "unable to create book, title missing from request body",
-      });
-      return;
-    }
+    //creates book - will return an object
+    const result = await Book.create({
+      title: req.body.title,
+      // adding the id from the found/created author
+      AuthorId: author.dataValues.id,
+      //if genre missing and is empty string, send undefined so model default genre is put in
+      // if req.body.genre is missing entirely, model default will occur
+      genre: req.body.genre === "" ? undefined : req.body.genre,
+    });
 
-    // for some other failure which is not an error
-    res.status(424).json({
+    // will send back res with 201 - book created
+
+    res.status(201).json({
       result: result,
-      message: `${req.body.title} has failed to be added to the db`,
+      message: `${result.title} has been added to the db`,
     });
   } catch (error) {
-    // if book already exists, an error occurs. This specifies the error with 409 status code
-    if (error.name === "SequelizeUniqueConstraintError") {
-      res
-        .status(409)
-        .json({ error: error, errorMessage: "book already exist" });
-      return;
-    }
-    // general error
     res.status(500).json({ error: error, errorMessage: error.message });
   }
 };
@@ -63,17 +37,9 @@ const addSingleBook = async (req, res) => {
 // get all books on /books/getallbooks
 const getAllBooks = async (req, res) => {
   try {
-    // find all books - will return array
     const result = await Book.findAll();
 
-    // checks result array has elements - if yes will return 201 and result array
-    if (result.length > 0) {
-      res.status(200).json({ result: result, message: "all books found" });
-      return;
-    }
-
-    // if result array empty (i.e. no books on db) will return 404 not found
-    res.status(404).json({ message: "books not found" });
+    res.status(200).json({ result: result, message: "all books found" });
   } catch (error) {
     // general error
     res.status(500).json({ error: error, errorMessage: error.message });
@@ -88,20 +54,7 @@ const getBookByTitle = async (req, res) => {
       where: { title: req.params.title },
     });
 
-    // checks is result is null (falsy) - if null/falsy will return status 404
-    // instead of going to error
-    if (!result) {
-      res.status(404).json({ message: `${req.params.title} does not exist` });
-      return;
-    }
-
-    // checks if result.title exists - if so will send 200 exists res
-    if (result.title) {
-      res
-        .status(200)
-        .json({ result: result, message: `${result.title} found` });
-      return;
-    }
+    res.status(200).json({ result: result, message: `${result.title} found` });
   } catch (error) {
     // general error
     res.status(500).json({ error: error, errorMessage: error.message });
@@ -118,24 +71,16 @@ const updateBookByTitleDynamic = async (req, res) => {
     const result = await Book.update(
       {
         // use of dynamic object key
-        // request has value "updateKey"
+        // request has value "updateKey" for update object key
+        // request has value "updateValue" for update object value
         [req.body.updateKey]: req.body.updateValue,
       },
       { where: { title: req.body.title } }
     );
 
-    console.log("!!!!!!!!!!!!!: ", result);
-    if (result[0] === 1) {
-      res
-        .status(201)
-        .json({ result: result, message: `${req.body.title} updated` });
-      return;
-    }
-
-    // if result[0] === 0 send not found 404 in res
     res
-      .status(404)
-      .json({ result: result, message: `${req.body.title} not found` });
+      .status(201)
+      .json({ result: result, message: `${req.body.title} updated` });
   } catch (error) {
     // general error
     res.status(500).json({ error: error, errorMessage: error.message });
@@ -144,25 +89,14 @@ const updateBookByTitleDynamic = async (req, res) => {
 
 const deleteSingleBookByTitle = async (req, res) => {
   try {
-    // checks if req.body.title exists - if not send 422 response (unprocessable entry)
-    if (!req.body.title) {
-      res.status(422).json({ message: "req.body.title does not exist" });
-      return;
-    }
     // Book.destroy() will return an integer of the number of books deleted
     const result = await Book.destroy({
       where: { title: req.body.title },
     });
 
-    // check is result (book deletion number) is equal to 1
-    // if it is then send res with 204 status code
-    // 204 status code cannot had a response body i.e. send no data or message
-    if (result) {
-      // 204 will not send a response body
-      // instead of .json() we use .send() to send no content
-      res.status(204).send();
-      return;
-    }
+    // 204 will not send a response body
+    // instead of .json() we use .send() to send no content
+    res.status(204).send();
 
     res.status(404).json({ message: "no deletion occured" });
   } catch (error) {
