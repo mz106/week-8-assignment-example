@@ -133,9 +133,39 @@ const updateBookByTitleDynamic = async (req, res) => {
   }
 };
 
+const deleteSingleBookByTitle = async (req, res) => {
+  try {
+    // checks if req.body.title exists - if not send 422 response (unprocessable entry)
+    if (!req.body.title) {
+      res.status(422).json({ message: "req.body.title does not exist" });
+      return;
+    }
+    // Book.destroy() will return an integer of the number of books deleted
+    const result = await Book.destroy({
+      where: { title: req.body.title },
+    });
+
+    // check is result (book deletion number) is equal to 1
+    // if it is then send res with 204 status code
+    // 204 status code cannot had a response body i.e. send no data or message
+    if (result) {
+      // 204 will not send a response body
+      // instead of .json() we use .send() to send no content
+      res.status(204).send();
+      return;
+    }
+
+    res.status(404).json({ message: "no deletion occured" });
+  } catch (error) {
+    // general error
+    res.status(500).json({ error: error, errorMessage: error.message });
+  }
+};
+
 module.exports = {
   addSingleBook: addSingleBook,
   getAllBooks: getAllBooks,
   getBookByTitle: getBookByTitle,
   updateBookByTitleDynamic: updateBookByTitleDynamic,
+  deleteSingleBookByTitle: deleteSingleBookByTitle,
 };
