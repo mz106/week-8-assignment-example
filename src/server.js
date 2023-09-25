@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 
 const Book = require("./books/model");
+const Author = require("./authors/model");
 
 const bookRouter = require("./books/routes");
 
@@ -11,6 +12,7 @@ const app = express();
 
 const syncTables = () => {
   Book.sync();
+  Author.sync();
 };
 
 app.use(express.json());
