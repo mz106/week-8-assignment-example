@@ -162,10 +162,25 @@ const deleteSingleBookByTitle = async (req, res) => {
   }
 };
 
+const deleteAllBooks = async (req, res) => {
+  try {
+    const result = await Book.destroy({
+      where: {},
+      truncate: true,
+    });
+
+    res.status(204).send();
+  } catch (error) {
+    // general error
+    res.status(500).json({ error: error, errorMessage: error.message });
+  }
+};
+
 module.exports = {
   addSingleBook: addSingleBook,
   getAllBooks: getAllBooks,
   getBookByTitle: getBookByTitle,
   updateBookByTitleDynamic: updateBookByTitleDynamic,
   deleteSingleBookByTitle: deleteSingleBookByTitle,
+  deleteAllBooks: deleteAllBooks,
 };
