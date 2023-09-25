@@ -5,7 +5,7 @@ const addSingleBook = async (req, res) => {
   try {
     // checks to see if title is present - if not, send 422 status in res
     if (req.body.title) {
-      //creates book
+      //creates book - will return an object
       const result = await Book.create({
         title: req.body.title,
         //if author missing and is empty string, send undefined so model default author is put in
@@ -51,6 +51,27 @@ const addSingleBook = async (req, res) => {
   }
 };
 
+// get all books on /books/getallbooks
+const getAllBooks = async (req, res) => {
+  try {
+    // find all books - will return array
+    const result = await Book.findAll();
+
+    // checks result array has elements - if yes will return 201 and result array
+    if (result.length > 0) {
+      res.status(200).json({ result: result, message: "all books found" });
+      return;
+    }
+
+    // if result array empty (i.e. no books on db) will return 404 not found
+    res.status(404).json({ message: "books not found" });
+  } catch (error) {
+    // general error
+    res.status(500).json({ error: error, errorMessage: error.message });
+  }
+};
+
 module.exports = {
   addSingleBook: addSingleBook,
+  getAllBooks: getAllBooks,
 };
