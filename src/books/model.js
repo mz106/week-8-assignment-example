@@ -9,10 +9,6 @@ const Book = connection.define(
       allowNull: false,
       unique: true,
     },
-    author: {
-      type: DataTypes.STRING,
-      defaultValue: "author missing",
-    },
     genre: {
       type: DataTypes.STRING,
       defaultValue: "genre missing",

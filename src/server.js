@@ -12,8 +12,11 @@ const port = process.env.PORT || 5001;
 const app = express();
 
 const syncTables = () => {
-  Book.sync();
+  Author.hasMany(Book);
+  Book.belongsTo(Author);
+
   Author.sync();
+  Book.sync();
 };
 
 app.use(express.json());
