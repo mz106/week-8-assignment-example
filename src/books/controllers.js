@@ -71,7 +71,37 @@ const getAllBooks = async (req, res) => {
   }
 };
 
+// get a single book by title on /books/getbookbytitle/:title
+const getBookByTitle = async (req, res) => {
+  console.log("!!!!!!!!!!!!!: ", req.params);
+  try {
+    // Book.findone() finds a book - return object if exists, null if does not exist
+    const result = await Book.findOne({
+      where: { title: req.params.title },
+    });
+
+    // checks is result is null (falsy) - if null/falsy will return status 404
+    // instead of going to error
+    if (!result) {
+      res.status(404).json({ message: `${req.params.title} does not exist` });
+      return;
+    }
+
+    // checks if result.title exists - if so will send 200 exists res
+    if (result.title) {
+      res
+        .status(200)
+        .json({ result: result, message: `${result.title} found` });
+      return;
+    }
+  } catch (error) {
+    // general error
+    res.status(500).json({ error: error, errorMessage: error.message });
+  }
+};
+
 module.exports = {
   addSingleBook: addSingleBook,
   getAllBooks: getAllBooks,
+  getBookByTitle: getBookByTitle,
 };
