@@ -1,16 +1,25 @@
 const Book = require("./model");
+const Author = require("../authors/model");
 
 // add single book to db on /books/addsinglebook
 const addSingleBook = async (req, res) => {
   try {
     // checks to see if title is present - if not, send 422 status in res
     if (req.body.title) {
+      //checks to see if author already exists
+      // return an array with 2 elements
+      // 1. new entry (obj)
+      // 2. boolean (has been created = true, found = false)
+      // uses array destructuring
+      const [author, authorCreated] = await Author.findOrCreate({
+        where: { author: req.body.author },
+      });
+
       //creates book - will return an object
       const result = await Book.create({
         title: req.body.title,
-        //if author missing and is empty string, send undefined so model default author is put in
-        // if req.body.author is missing entirely, model default will occur
-        author: req.body.author === "" ? undefined : req.body.author,
+        // adding the id from the found/created author
+        AuthorId: author.dataValues.id,
         //if genre missing and is empty string, send undefined so model default genre is put in
         // if req.body.genre is missing entirely, model default will occur
         genre: req.body.genre === "" ? undefined : req.body.genre,
