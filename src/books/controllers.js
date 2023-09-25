@@ -73,7 +73,6 @@ const getAllBooks = async (req, res) => {
 
 // get a single book by title on /books/getbookbytitle/:title
 const getBookByTitle = async (req, res) => {
-  console.log("!!!!!!!!!!!!!: ", req.params);
   try {
     // Book.findone() finds a book - return object if exists, null if does not exist
     const result = await Book.findOne({
@@ -100,8 +99,43 @@ const getBookByTitle = async (req, res) => {
   }
 };
 
+// update book by title (update title or genre or author) on /books/updatebookbytitledynamic
+const updateBookByTitleDynamic = async (req, res) => {
+  try {
+    // Book.update() updates book - will return array
+    // array will have an integer with number of updated books @ result[0]
+    // if result[0] >= 1 book(s) have been updated
+    // if result[0] === 0 no books updated
+    const result = await Book.update(
+      {
+        // use of dynamic object key
+        // request has value "updateKey"
+        [req.body.updateKey]: req.body.updateValue,
+      },
+      { where: { title: req.body.title } }
+    );
+
+    console.log("!!!!!!!!!!!!!: ", result);
+    if (result[0] === 1) {
+      res
+        .status(201)
+        .json({ result: result, message: `${req.body.title} updated` });
+      return;
+    }
+
+    // if result[0] === 0 send not found 404 in res
+    res
+      .status(404)
+      .json({ result: result, message: `${req.body.title} not found` });
+  } catch (error) {
+    // general error
+    res.status(500).json({ error: error, errorMessage: error.message });
+  }
+};
+
 module.exports = {
   addSingleBook: addSingleBook,
   getAllBooks: getAllBooks,
   getBookByTitle: getBookByTitle,
+  updateBookByTitleDynamic: updateBookByTitleDynamic,
 };
